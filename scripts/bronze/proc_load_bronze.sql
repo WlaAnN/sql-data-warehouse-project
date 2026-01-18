@@ -7,6 +7,9 @@ Purpose:
 	This sript creates procedure that trancates all the tables and then 
 	fully loads all the data from crm and erp sources
 
+Parameters:
+	None
+
 Using:
   EXEC bronze.load_bronze;
 =====================================================================
