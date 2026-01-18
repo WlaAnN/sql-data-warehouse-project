@@ -10,10 +10,10 @@ Purpose:
 		-Inserts transformed and cleansed data from bronze into silver tables.
 
 Parameters:
-	NONE
+	None
 
 How to use:
-	EXEC silver.load_silver
+	EXEC silver.load_silver;
 
 */
 CREATE OR ALTER PROCEDURE silver.load_silver AS
