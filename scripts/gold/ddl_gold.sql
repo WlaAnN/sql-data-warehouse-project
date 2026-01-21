@@ -60,7 +60,7 @@ WHERE ti.prd_end_dt IS NULL
 GO
 
 IF OBJECT_ID('gold.fact_sales', 'V') IS NOT NULL
-  DROP VIEW 'gold.fact_sales' 
+  DROP VIEW gold.fact_sales 
 GO 
 CREATE VIEW gold.fact_sales AS
 SELECT
