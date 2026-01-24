@@ -4,16 +4,16 @@ Cleansing table broze.cr_cust_info
 ==================================
 
 Purpose:
-	This script creates a procedure that perfomes the ETL process: bronze -> silver.
+	This script creates a procedure that loads data from broze layer to silver layer.
 	Actions: 
 		-Truncates silver tables.
 		-Inserts transformed and cleansed data from bronze into silver tables.
 
 Parameters:
-	None
+	NONE
 
 How to use:
-	EXEC silver.load_silver;
+	EXEC silver.load_silver
 
 */
 CREATE OR ALTER PROCEDURE silver.load_silver AS
@@ -242,8 +242,8 @@ BEGIN
 		)
 		SELECT 
 			id,
-			cat, 
-			subcat,
+			COALESCE(cat 'No category') AS cat, 
+			COALESCE(subcat, 'No subcategory') AS subcat,
 			maintenance
 		FROM bronze.erp_px_cat_g1v2;
 		SET @end_time = GETDATE();
