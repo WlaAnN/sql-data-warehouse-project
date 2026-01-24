@@ -242,7 +242,7 @@ BEGIN
 		)
 		SELECT 
 			id,
-			COALESCE(cat 'No category') AS cat, 
+			COALESCE(cat, 'No category') AS cat, 
 			COALESCE(subcat, 'No subcategory') AS subcat,
 			maintenance
 		FROM bronze.erp_px_cat_g1v2;
