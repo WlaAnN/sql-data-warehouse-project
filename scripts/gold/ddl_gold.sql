@@ -7,7 +7,7 @@ Purpose:
 	This script drops needed view if they already exist and recreates new ones.
 
 Usage:
-  These views can be queries direcly fo analytics and reporting.
+  These views can be queried direcly fo analytics and reporting.
 */
 
 IF OBJECT_ID('gold.dim_customer', 'V') IS NOT NULL
