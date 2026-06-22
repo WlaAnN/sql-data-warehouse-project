@@ -1,188 +1,51 @@
 # SQL Data Warehouse Project
-## 📌 Project Overview
 
-This project implements a layered SQL Data Warehouse using Microsoft SQL Server.
-The solution follows the Bronze → Silver → Gold architecture to ingest raw data, apply data quality rules, and expose analytics-ready datasets.
+Учебный проект по построению хранилища данных на Microsoft SQL Server. Делал его, проходя курс [Data with Baraa](https://www.youtube.com/@DataWithBaraa) по SQL — закреплял на практике то, что было в видео.
 
-The warehouse integrates data from the following source systems:
+Идея простая: взять данные из двух условных источников (CRM и ERP в виде CSV-файлов) и провести их через три слоя — bronze, silver, gold — до состояния, в котором с ними удобно работать в BI-инструментах.
 
-1. CRM — customers, products, and sales
+## Архитектура
 
-2. ERP — customers, locations, and product categories
+- **bronze** — данные как есть, без обработки, просто загруженные из CSV
+- **silver** — те же данные, но почищенные: убраны дубликаты, приведены к единому виду пол/семейный статус/страна, проверены и исправлены даты, пересчитана логика по продажам
+- **gold** — готовые представления (views) для отчётности: измерения `dim_customer`, `dim_product` и факт `fact_sales`, собранные в звёздную схему
 
-The Gold layer represents the presentation layer and is designed for BI tools and analytical queries.
+Схема архитектуры и движение данных между слоями — в `docs/`.
 
----
+## Что внутри
 
-## 🏗️ Architecture
-| Layer | Purpose | Description |
-|-------|---------|-------------|
-| Bronze | Raw ingestion | Stores raw data loaded directly from source CSV files |
-| Silver | Cleansed data | Applies transformations, standardization, and validation |
-| Gold | Analytics | Exposes dimensional and fact views for reporting |
+```
+scripts/
+├── init_database.sql           # создание базы и схем bronze/silver/gold
+├── bronze/
+│   ├── ddl_bronze.sql           # таблицы под исходные данные
+│   └── proc_load_bronze.sql     # загрузка из CSV через BULK INSERT
+├── silver/
+│   ├── ddl_silver.sql
+│   └── proc_load_silver.sql     # очистка и нормализация
+├── gold/
+│   └── ddl_gold.sql             # витрины-представления
+└── tests/                       # проверки качества данных на silver и gold
+```
 
----
+Загрузка bronze и silver запускается процедурами:
+```sql
+EXEC bronze.load_bronze;
+EXEC silver.load_silver;
+```
 
-## 🛢️ Database Initialization
+Слой silver сделан как full refresh — каждый запуск перезаливает данные заново (`TRUNCATE` + `INSERT`), с замером времени выполнения и обработкой ошибок через `TRY/CATCH`.
 
-The init_database.sql script performs the following actions:
+## Стек
 
-1. Drops and recreates the DataWareHouse database
+MS SQL Server, T-SQL, BULK INSERT.
 
-2. Creates logical schemas: bronze, silver, and gold
+## Что взял из этого проекта
 
-### WARNING
-Running this script will permanently delete the existing DataWareHouse database if it already exists.
+Это был мой первый полноценный заход в data warehousing — до этого работал с SQL только на уровне запросов, без слоёв и ETL-логики. Здесь разобрался, как:
+- организовать данные по слоям и зачем это нужно
+- писать процедуры загрузки с логированием и обработкой ошибок
+- проектировать звёздную схему и считать surrogate key через `ROW_NUMBER()`
+- проверять качество данных простыми SQL-тестами
 
----
-
-## 🥉 Bronze Layer
-### 📄 Data Definition
-
-Defined in ddl_bronze.sql.
-
-Raw tables representing CRM and ERP source systems are created without applying business transformations.
-
-### 🔄 Load Process
-
-Implemented in proc_load_bronze.sql.
-
-Key characteristics:
-
-1. Full reload strategy using TRUNCATE TABLE
-
-2. Data ingestion from CSV files via BULK INSERT
-
-3. Execution time logging for each table
-
-4. Centralized error handling using TRY / CATCH
-
-Example execution:
-
-```EXEC bronze.load_bronze;```
-
----
-
-## 🥈 Silver Layer
-### 📄 Data Definition
-
-Defined in ddl_silver.sql.
-
-Enhancements compared to the Bronze layer:
-
-1. Normalized data types
-
-2. Additional audit column (dwh_create_date)
-
-3. Tables optimized for analytical workloads
-
-### 🔧 Transformations
-
-Implemented in proc_load_silver.sql.
-
-Key data quality rules:
-
-1. Customer deduplication using window functions
-
-2. Standardization of gender, marital status, and country values
-
-3. Validation and correction of date fields
-
-4. Sales data consistency checks and recalculation
-
-5. Product category parsing and normalization
-
-Example execution:
-
-```EXEC silver.load_silver;```
-
----
-
-## 🥇 Gold Layer
-
-Defined in ddl_gold.sql as presentation-level SQL views.
-
-### 📐 Dimensions
-
-1. gold.dim_customer
-
-2. gold.dim_product
-
-### 📊 Fact
-
-gold.fact_sales
-
-Design principles:
-
-1. Surrogate keys generated using ROW_NUMBER()
-
-2. Clean joins between CRM and ERP domains
-
-3. Star-schema-friendly structure
-
-4. Optimized for BI and reporting tools
-
----
-
-## 📊 Diagrams
-
-The project includes diagrams illustrating:
-
-1. Data Architecture
-
-2. Data Flow
-
-3. Data Integration
-
-4. Data Model
-
-Diagrams a stored in docs/
-
-### Data Architecture diagram
-<img width="1181" height="701" alt="Data Architecture" src="https://github.com/user-attachments/assets/fc3fa62d-dd70-4247-a5d1-e6f161bdf15c" />
-
----
-
-## 🧰 Technologies Used
-
-1. Microsoft SQL Server
-
-2. T-SQL
-
-3. BULK INSERT
-
-4. Layered Data Warehouse architecture
-
-5. Dimensional modeling
-
----
-
-## 🎯 Key Learnings
-
-1. End-to-end Data Warehouse design
-
-2. Layered ETL implementation in SQL
-
-3. Practical data cleansing and validation
-
-4. Dimensional modeling for analytics
-
-5. Writing production-grade stored procedures
-
-Additional learning is working with Git
-
----
-
-## 📌 Notes
-
-1. All data loads are implemented as full refresh processes
-
-2. CSV file paths must be adapted to the local environment
-
-3. The project is intended for educational and portfolio purposes
-
----
-
-## 👤 Author
-
-Data Engineering learning project focused on practical SQL Data Warehouse implementation.
+Данные тестовые, пути к CSV нужно подставлять под свою машину — проект учебный, не предназначен для прода.
